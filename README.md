@@ -1,116 +1,101 @@
-# 🌱 Food Waste Analytics Pipeline
+🌱 Food Waste Analytics Pipeline
+================================
 
-An end-to-end analytics project analyzing global food waste patterns using public data from the FAO (Food and Agriculture Organization). Built to demonstrate real-world Analytics Engineering skills: SQL modeling, dbt transformations, and BigQuery data warehousing.
+An end-to-end analytics project analyzing global food waste patterns using public data, built to demonstrate real-world Analytics Engineering skills: SQL modeling, Python/data visualization, and (upcoming) dbt transformations and BigQuery/Snowflake warehousing.
 
-> **Context:** Inspired by professional experience managing food waste reduction programs (Waste Watch) at Sodexo — a Fortune 500 global food services company operating across 5+ countries.
-
----
-
-## 📊 Project Overview
-
-Food waste is responsible for ~8-10% of global greenhouse gas emissions. This project analyzes food loss and waste data across countries, sectors, and supply chain stages to uncover patterns and opportunities for reduction.
-
-**Key questions this project answers:**
-- Which countries and regions have the highest food waste per capita?
-- Which supply chain stages (production, retail, consumer) generate the most waste?
-- How has food waste trended over time across different food categories?
-- What is the estimated economic and environmental impact by region?
+This project applies the same analytical logic used professionally in the **Waste Watch Brazil** program at Sodexo — compliance tracking, per-capita waste, and reduction-vs-baseline KPIs — to open data, since operational data from Sodexo clients cannot be shared publicly.
 
 ---
 
-## 🏗️ Architecture
+## 📊 Data Source
 
-FAO Public Data (CSV)
-↓
-Raw Layer (SQL)
-↓
-Staging Layer (dbt)
-↓
-Marts Layer (dbt)
-↓
-BigQuery Data Warehouse
-↓
-Dashboard (Looker Studio / Power BI)
+**Global Food Wastage Dataset (2018–2024)**
+Source: [Kaggle — Atharva Soundankar](https://www.kaggle.com/datasets/atharvasoundankar/global-food-wastage-dataset-2018-2024)
 
+The dataset covers 20 countries, 8 food categories, and 7 years (2018–2024), with the following fields:
+
+| Column | Description |
+|---|---|
+| `Country` | Country name |
+| `Year` | Reporting year (2018–2024) |
+| `Food Category` | Category of food (e.g. Fruits & Vegetables, Dairy, Meat & Seafood) |
+| `Total Waste (Tons)` | Total food waste in tons |
+| `Economic Loss (Million $)` | Estimated economic loss in USD millions |
+| `Avg Waste per Capita (Kg)` | Average waste per capita in kg |
+| `Population (Million)` | Population in millions |
+| `Household Waste (%)` | Share of waste attributable to households |
 
 ---
 
-## 📁 Project Structure
+## 🗂️ Project Structure
 
+```
 food-waste-analytics-pipeline/
-├── data/
-│ └── sources.md # Links to public datasets used
 ├── sql/
-│ ├── 01_exploration.sql # Initial data exploration queries
-│ ├── 02_staging.sql # Data cleaning and standardization
-│ ├── 03_metrics.sql # Core KPI calculations
-│ └── 04_analysis.sql # Analytical queries and insights
-├── dbt_project/ # Coming soon
-│ ├── models/
-│ │ ├── staging/
-│ │ ├── intermediate/
-│ │ └── marts/
-│ └── tests/
+│   ├── 01_exploration.sql        # Initial data exploration queries
+│   └── 02_analysis.sql           # Core analysis: rankings, trends, YoY, economic impact
+├── data/
+│   └── global_food_wastage_dataset.csv
+├── notebooks/
+│   └── 01_exploratory_analysis.ipynb   # Python (pandas + matplotlib/seaborn) version of the SQL analysis, with charts
+├── .gitignore
+├── LICENSE
 └── README.md
-
+```
 
 ---
 
-## 🗃️ Data Sources
+## 🔍 Analysis Overview
 
-| Source | Description | Link |
-|--------|-------------|------|
-| FAO FAOSTAT | Food waste by country and commodity | [fao.org/faostat](https://www.fao.org/faostat) |
-| WRAP | Food waste in food service sector | [wrap.org.uk](https://www.wrap.org.uk) |
-| Our World in Data | Food waste visualizations and context | [ourworldindata.org](https://ourworldindata.org/food-waste) |
+Both the SQL queries and the notebook cover the same seven analyses:
+
+1. **Top 20 countries by total waste** (latest year)
+2. **Waste per capita ranking** (latest year)
+3. **Global trend over time** (2018–2024)
+4. **Waste by food category** (share of total, economic loss, per-capita average)
+5. **Year-over-year change by country** (window function `LAG()` in SQL / `.shift()` in pandas)
+6. **Brazil deep dive** (waste and economic loss by year and category)
+7. **Economic impact analysis** (loss per ton by country)
+
+The notebook (`notebooks/01_exploratory_analysis.ipynb`) renders directly on GitHub with all charts included — no need to download or run anything to view the results.
 
 ---
 
 ## 🛠️ Tech Stack
 
-| Tool | Purpose |
-|------|---------|
-| SQL | Data exploration and transformation |
-| dbt | Data modeling and testing (in progress) |
-| Google BigQuery | Cloud data warehouse |
-| Python (pandas) | Data ingestion and EDA |
-| Looker Studio / Power BI | Dashboard and visualization |
-| Git / GitHub | Version control |
+- **SQL** — data modeling and analysis (`sql/`)
+- **Python** — pandas, matplotlib, seaborn (`notebooks/`)
+- **dbt** — *in progress*: migrating SQL transformations into `staging` → `marts` models with tests
+- **BigQuery / Snowflake** — *planned*: cloud data warehouse layer
 
 ---
 
-## 📈 Key Metrics (WIP)
+## ▶️ How to Run Locally
 
-- **Food Waste per Capita** by country (kg/year)
-- **Waste by Supply Chain Stage** (production → retail → consumer)
-- **Sector Comparison** (food service vs household vs retail)
-- **Year-over-Year Trend** by region
-- **Economic Loss Estimate** (USD value of wasted food)
+```bash
+git clone https://github.com/pietromasiero/food-waste-analytics-pipeline.git
+cd food-waste-analytics-pipeline
+
+pip install pandas matplotlib seaborn jupyter
+
+jupyter notebook notebooks/01_exploratory_analysis.ipynb
+```
 
 ---
 
-## 🚧 Status
+## 🧭 Roadmap
 
-| Phase | Status |
-|-------|--------|
-| Data sourcing | ✅ Complete |
-| SQL exploration | 🔄 In Progress |
-| dbt modeling | 📅 Planned |
-| BigQuery setup | 📅 Planned |
-| Dashboard | 📅 Planned |
+- [x] SQL exploration and analysis queries
+- [x] Python notebook with visualizations
+- [ ] Migrate SQL logic into dbt models (`staging` → `marts`)
+- [ ] Add dbt tests (not null, accepted values, relationships)
+- [ ] Load data into BigQuery/Snowflake
+- [ ] Optional: interactive dashboard (Streamlit or Plotly Dash)
 
 ---
 
 ## 👤 Author
 
 **Pietro Masiero**
-Senior Data Analyst @ Sodexo (Fortune 500)
-[LinkedIn](https://linkedin.com/in/pietromasiero) · [GitHub](https://github.com/pietromasiero)
-
----
-
-*This project uses exclusively public data. No proprietary or confidential data from any employer is included.*
-
-
-
-
+Senior Management Information Analyst @ Sodexo | Data Analytics & BI
+[LinkedIn](https://www.linkedin.com/in/pietromasiero) · [GitHub](https://github.com/pietromasiero)
