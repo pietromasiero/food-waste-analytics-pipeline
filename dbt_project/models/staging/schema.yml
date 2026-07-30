@@ -1,0 +1,61 @@
+version: 2
+
+seeds:
+  - name: global_food_wastage_dataset
+    description: >
+      Raw seed data loaded from the Global Food Wastage Dataset (2018-2024),
+      sourced from Kaggle (Atharva Soundankar). Columns renamed to snake_case
+      prior to loading.
+    columns:
+      - name: country
+        description: Country name
+        tests:
+          - not_null
+      - name: year
+        description: Reporting year
+        tests:
+          - not_null
+      - name: food_category
+        description: Category of food waste
+        tests:
+          - not_null
+          - accepted_values:
+              values:
+                - 'Fruits & Vegetables'
+                - 'Prepared Food'
+                - 'Dairy Products'
+                - 'Beverages'
+                - 'Meat & Seafood'
+                - 'Grains & Cereals'
+                - 'Frozen Food'
+                - 'Bakery Items'
+      - name: total_waste_tons
+        description: Total food waste in tons
+        tests:
+          - not_null
+      - name: economic_loss_million_usd
+        description: Estimated economic loss in USD millions
+        tests:
+          - not_null
+
+models:
+  - name: stg_food_waste
+    description: >
+      Cleaned and standardized food waste records, one row per
+      country/year/food_category combination.
+    columns:
+      - name: country
+        description: Country name (trimmed)
+        tests:
+          - not_null
+      - name: year
+        tests:
+          - not_null
+      - name: food_category
+        tests:
+          - not_null
+      - name: total_waste_tons
+        tests:
+          - not_null
+      - name: economic_loss_per_ton_usd
+        description: Derived metric — economic loss (USD) per ton of waste

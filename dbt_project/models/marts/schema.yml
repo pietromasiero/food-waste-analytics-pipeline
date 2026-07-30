@@ -1,0 +1,50 @@
+version: 2
+
+models:
+  - name: fct_waste_by_country_year
+    description: >
+      One row per country/year with aggregated waste, economic loss,
+      per-capita average, and year-over-year % change vs. the prior year.
+      Replaces queries 1 (top countries), 2 (per-capita ranking),
+      3 (global trend) and 5 (YoY change) from the original SQL analysis.
+      Filter to country = 'Brazil' for the country deep-dive (query 6).
+    columns:
+      - name: country
+        tests:
+          - not_null
+      - name: year
+        tests:
+          - not_null
+      - name: total_waste_tons
+        tests:
+          - not_null
+      - name: pct_change_yoy
+        description: Null for each country's first reported year (no prior year to compare)
+
+  - name: fct_waste_by_category
+    description: >
+      One row per food category with total waste, economic loss, and
+      share (%) of global total waste. Replaces query 4.
+    columns:
+      - name: food_category
+        tests:
+          - not_null
+          - unique
+      - name: total_waste_tons
+        tests:
+          - not_null
+      - name: pct_of_total_waste
+        tests:
+          - not_null
+
+  - name: fct_economic_impact
+    description: >
+      One row per country with total waste, total economic loss, and
+      economic loss per ton (USD). Replaces query 7.
+    columns:
+      - name: country
+        tests:
+          - not_null
+          - unique
+      - name: economic_loss_per_ton_usd
+        description: total_economic_loss_million_usd / total_waste_tons

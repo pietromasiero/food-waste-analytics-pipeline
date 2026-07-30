@@ -1,0 +1,15 @@
+# EXAMPLE FILE — do NOT commit this to GitHub.
+# Copy this content into ~/.dbt/profiles.yml (create the folder/file if it
+# doesn't exist yet).
+#
+# DuckDB runs 100% locally — no cloud account, no authentication needed.
+# The .duckdb file will be created automatically on first `dbt run`
+# inside the dbt_project folder.
+
+food_waste_analytics:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: food_waste.duckdb
+      threads: 4
