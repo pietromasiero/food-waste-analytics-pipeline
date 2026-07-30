@@ -1,7 +1,7 @@
 🌱 Food Waste Analytics Pipeline
 ================================
 
-An end-to-end analytics project analyzing global food waste patterns using public data, built to demonstrate real-world Analytics Engineering skills: SQL modeling, Python/data visualization, and (upcoming) dbt transformations and BigQuery/Snowflake warehousing.
+An end-to-end analytics project analyzing global food waste patterns using public data, built to demonstrate real-world Analytics Engineering skills: SQL modeling, Python data visualization, and dbt transformations with automated testing and documentation.
 
 This project applies the same analytical logic used professionally in the **Waste Watch Brazil** program at Sodexo — compliance tracking, per-capita waste, and reduction-vs-baseline KPIs — to open data, since operational data from Sodexo clients cannot be shared publicly.
 
@@ -38,6 +38,20 @@ food-waste-analytics-pipeline/
 │   └── global_food_wastage_dataset.csv
 ├── notebooks/
 │   └── 01_exploratory_analysis.ipynb   # Python (pandas + matplotlib/seaborn) version of the SQL analysis, with charts
+├── dbt_project/
+│   ├── dbt_project.yml
+│   ├── profiles.yml.EXAMPLE      # Template for local ~/.dbt/profiles.yml (never commit real credentials)
+│   ├── seeds/
+│   │   └── global_food_wastage_dataset.csv   # Clean, snake_case column names for warehouse loading
+│   └── models/
+│       ├── staging/
+│       │   ├── stg_food_waste.sql       # Cleaning, type casting, derived metrics
+│       │   └── schema.yml               # Source/model documentation and tests
+│       └── marts/
+│           ├── fct_waste_by_country_year.sql   # Country/year rollup + year-over-year % change
+│           ├── fct_waste_by_category.sql       # Category rollup + share of global total
+│           ├── fct_economic_impact.sql         # Economic loss per ton by country
+│           └── schema.yml
 ├── .gitignore
 ├── LICENSE
 └── README.md
@@ -47,17 +61,17 @@ food-waste-analytics-pipeline/
 
 ## 🔍 Analysis Overview
 
-Both the SQL queries and the notebook cover the same seven analyses:
+The SQL scripts, the Python notebook, and the dbt models all cover the same core analyses:
 
-1. **Top 20 countries by total waste** (latest year)
-2. **Waste per capita ranking** (latest year)
+1. **Top countries by total waste**
+2. **Waste per capita ranking**
 3. **Global trend over time** (2018–2024)
 4. **Waste by food category** (share of total, economic loss, per-capita average)
-5. **Year-over-year change by country** (window function `LAG()` in SQL / `.shift()` in pandas)
-6. **Brazil deep dive** (waste and economic loss by year and category)
+5. **Year-over-year change by country** (`LAG()` window function in SQL, `.shift()` in pandas, `lag() over()` in dbt)
+6. **Country deep dive** (e.g. Brazil — filter any mart by `country`)
 7. **Economic impact analysis** (loss per ton by country)
 
-The notebook (`notebooks/01_exploratory_analysis.ipynb`) renders directly on GitHub with all charts included — no need to download or run anything to view the results.
+The notebook renders directly on GitHub with all charts included. The dbt project includes a full **lineage graph** (seed → staging → marts) generated via `dbt docs`.
 
 ---
 
@@ -65,20 +79,36 @@ The notebook (`notebooks/01_exploratory_analysis.ipynb`) renders directly on Git
 
 - **SQL** — data modeling and analysis (`sql/`)
 - **Python** — pandas, matplotlib, seaborn (`notebooks/`)
-- **dbt** — *in progress*: migrating SQL transformations into `staging` → `marts` models with tests
-- **BigQuery / Snowflake** — *planned*: cloud data warehouse layer
+- **dbt** — staging → marts transformation layer, with automated data quality tests (`not_null`, `unique`, `accepted_values`)
+- **DuckDB** — local analytical warehouse used as the dbt target (zero-setup, ideal for a portfolio project; swappable for BigQuery/Snowflake in a production context)
 
 ---
 
 ## ▶️ How to Run Locally
 
+**Notebook:**
 ```bash
 git clone https://github.com/pietromasiero/food-waste-analytics-pipeline.git
 cd food-waste-analytics-pipeline
 
 pip install pandas matplotlib seaborn jupyter
-
 jupyter notebook notebooks/01_exploratory_analysis.ipynb
+```
+
+**dbt pipeline:**
+```bash
+pip install dbt-core dbt-duckdb
+
+mkdir -p ~/.dbt
+cp dbt_project/profiles.yml.EXAMPLE ~/.dbt/profiles.yml
+
+cd dbt_project
+dbt debug   # verify setup
+dbt seed    # load the CSV into DuckDB
+dbt run     # build staging + marts models
+dbt test    # run data quality tests
+
+dbt docs generate && dbt docs serve   # view the lineage graph
 ```
 
 ---
@@ -87,9 +117,8 @@ jupyter notebook notebooks/01_exploratory_analysis.ipynb
 
 - [x] SQL exploration and analysis queries
 - [x] Python notebook with visualizations
-- [ ] Migrate SQL logic into dbt models (`staging` → `marts`)
-- [ ] Add dbt tests (not null, accepted values, relationships)
-- [ ] Load data into BigQuery/Snowflake
+- [x] dbt project: staging → marts models, tested and documented (DuckDB)
+- [ ] Optional: load models into BigQuery/Snowflake for a cloud-warehouse variant
 - [ ] Optional: interactive dashboard (Streamlit or Plotly Dash)
 
 ---
